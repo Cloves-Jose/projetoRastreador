@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     administrador: DataTypes.BOOLEAN
   }, {
     sequelize,
+    paranoid: true,
     modelName: 'Usuarios',
   });
   return Usuarios;
