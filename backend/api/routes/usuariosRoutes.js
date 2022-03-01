@@ -6,5 +6,5 @@ const router = Router()
 
 router
     .post('/api/cadastrarUsuario', UsuariosController.cadatrarUsuario)
-
+    .post('/api/realizaLogin', UsuariosController.fazerLogin)
 module.exports = router

@@ -8,6 +8,7 @@ class Services{
     async criarRegistro(registro){
         return database[this.nomeDoModelo].create(registro)
     }
+
 }
 
 module.exports = Services
