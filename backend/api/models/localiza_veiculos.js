@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     longitude: DataTypes.STRING
   }, {
     sequelize,
+    paranoid: true,
     modelName: 'Localiza_veiculos',
   });
   return Localiza_veiculos;

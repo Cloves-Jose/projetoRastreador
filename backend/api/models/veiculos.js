@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     placa: DataTypes.STRING
   }, {
     sequelize,
+    paranoid: true,
     modelName: 'Veiculos',
   });
   return Veiculos;
