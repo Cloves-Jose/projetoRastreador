@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MapView from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions'
 import * as Location from 'expo-location';
-import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { StyleSheet, View, Text } from 'react-native';
+
+import config from '../../../../config'
 
 const mapStyle = [
     {
@@ -190,55 +194,113 @@ const mapStyle = [
     }
   ]
 
-export default function Mapa() {
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null)
+  export default function Mapa() {
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permissão para acesso de localização foi negada');
-        return;
-      }
+    const mapEl=useRef(null)
+    const [location, setLocation] = useState(null);
+    const [destination, setDestination] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
+    const [distance, setDistance] = useState(null)
 
-      let location = await Location.getCurrentPositionAsync({})
-      setLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        latitudeDelta: 0.000922,
-        longitudeDelta: 0.000421,
-      })
-    }) ();
-  }, []);
+    useEffect(() => {
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if(status !== 'granted') {
+                setErrorMsg('A permissão para acessar a localização foi negada');
+                return;
+            }
 
-  let text = 'Carregando..';
-  if(errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location)
-  }
+            let location = await Location.getCurrentPositionAsync({enableHighAccuracy: true});
+            setLocation({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                latitudeDelta:0.000922,
+                longitudeDelta:0.000421,
+            })
+        }) ();
+    }, []);
 
+    let text = 'Carregando..';
+    if(errorMsg) {
+        text = errorMsg;
+    } else if (location) {
+        text = JSON.stringify(location)
+    }
+    
+    
     return (
-        <View style={estilos.container}>
+        <View style={css.container}>
             <MapView 
                 customMapStyle={mapStyle} 
+                style={css.map}
                 initialRegion={location}
                 showsUserLocation={true}
-                style={estilos.map}/>
+                ref={mapEl}
+            >
+                {destination &&
+                    <MapViewDirections
+                        precision='high'
+                        strokeWidth={7}
+                        strokeColor="orange"
+                        origin={location}
+                        destination={destination}
+                        apikey={config.googleApi}
+                        onReady={result=>{
+                            setDistance(result.distance);
+                            mapEl.current.fitToCoordinates(
+                                result.coordinates,{
+                                    edgePadding:{
+                                        top:50,
+                                        bottom:50,
+                                        left:50,
+                                        right:50
+                                    }
+                                }
+                            )
+                        }}
+                    />
+                }
+            </MapView>
+            <View style={css.search}>
+                <GooglePlacesAutocomplete
+                    placeholder='Digite seu destino'
+                    onPress={(data, details = null) => {
+                        setDestination({
+                            latitude: details.geometry.location.lat,
+                            longitude: details.geometry.location.lng,
+                            latitudeDelta:0.000922,
+                            longitudeDelta:0.000421,
+                        });
+                    }}
+                    query={{
+                        key: config.googleApi,
+                        language: 'pt-BR'
+                    }}
+                    enablePoweredByContainer={false}
+                    fetchDetails={true}
+                    styles={{listView:{height:50}}}
+                />
+
+                <View>
+                    {distance &&
+                        <Text>Distância: {distance} m</Text>
+                    }
+                </View>
+            </View>
         </View>
-    );
+    )
 }
 
-const estilos = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    map: {
-        width: Dimensions.get('window').width,
-        height: Dimensions.get('window').height
-    }
-})
+const css = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+  },
+  map:{
+      height: '60%',
+  },
+  search:{
+      height: '40%',
+  }
+});
