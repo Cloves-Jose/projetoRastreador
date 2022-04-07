@@ -9,6 +9,9 @@ class Services{
         return database[this.nomeDoModelo].create(registro)
     }
 
+    async buscarRegistro(){
+        return database[this.nomeDoModelo].findAll()
+    }
 }
 
 module.exports = Services

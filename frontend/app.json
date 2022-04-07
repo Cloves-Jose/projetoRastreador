@@ -1,6 +1,10 @@
 {
   "expo": {
-    "plugins": ["@react-native-mapbox-gl/maps"],
+    "plugins": [
+      [
+        "expo-notifications"
+      ]
+    ],
     "name": "frontend",
     "slug": "frontend",
     "version": "1.0.0",
